@@ -1,0 +1,624 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="theme-color" content="#0b1218" />
+  <title>影之身</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Sora:wght@400;500;600&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --ink: #e7eef4;
+      --ink-dim: #8fa0b0;
+      --void: #070b0f;
+      --panel: #0f171f;
+      --panel-lift: #162230;
+      --cyan: #3ecfcf;
+      --cyan-deep: #1a9a9a;
+      --ember: #e07a3a;
+      --fog: rgba(231, 238, 244, 0.06);
+      --line: rgba(231, 238, 244, 0.12);
+      --safe-top: env(safe-area-inset-top, 0px);
+      --safe-bottom: env(safe-area-inset-bottom, 0px);
+      --font-brand: "Instrument Serif", "Songti SC", serif;
+      --font-ui: "Sora", "PingFang SC", "Noto Sans SC", sans-serif;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html, body {
+      min-height: 100%;
+      font-family: var(--font-ui);
+      color: var(--ink);
+      background: var(--void);
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    body {
+      background:
+        radial-gradient(80% 55% at 10% -10%, rgba(62, 207, 207, 0.16), transparent 55%),
+        radial-gradient(60% 45% at 100% 0%, rgba(224, 122, 58, 0.12), transparent 50%),
+        linear-gradient(168deg, #101820 0%, var(--void) 48%, #05080c 100%);
+      overflow-x: hidden;
+    }
+
+    body::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      opacity: 0.35;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.45'/%3E%3C/svg%3E");
+      mix-blend-mode: soft-light;
+      z-index: 0;
+    }
+
+    .app {
+      position: relative;
+      z-index: 1;
+      max-width: 520px;
+      margin: 0 auto;
+      min-height: 100dvh;
+      padding: calc(16px + var(--safe-top)) 18px calc(28px + var(--safe-bottom));
+    }
+
+    .hero {
+      padding: 4px 0 18px;
+      opacity: 0;
+      transform: translateY(12px);
+      transition: opacity 0.7s ease, transform 0.7s ease;
+    }
+    body.ready .hero {
+      opacity: 1;
+      transform: none;
+    }
+
+    .topbar {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
+    .brand {
+      font-family: var(--font-brand);
+      font-size: clamp(3rem, 14vw, 4.2rem);
+      font-weight: 400;
+      letter-spacing: 0.08em;
+      line-height: 0.95;
+      color: var(--ink);
+      animation: brandIn 0.85s cubic-bezier(0.22, 1, 0.36, 1) both;
+    }
+
+    .brand span {
+      display: inline-block;
+      font-style: italic;
+      color: var(--cyan);
+      letter-spacing: 0.02em;
+    }
+
+    @keyframes brandIn {
+      from { opacity: 0; transform: translateY(18px); filter: blur(6px); }
+      to { opacity: 1; transform: none; filter: none; }
+    }
+
+    .tagline {
+      margin-top: 10px;
+      color: var(--ink-dim);
+      font-size: 0.92rem;
+      letter-spacing: 0.02em;
+      max-width: 22em;
+      animation: fadeUp 0.75s 0.12s ease both;
+    }
+
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: none; }
+    }
+
+    .wear-btn {
+      border: 1px solid var(--line);
+      background: var(--fog);
+      color: var(--ink-dim);
+      border-radius: 999px;
+      padding: 8px 12px;
+      font-size: 0.75rem;
+      font-family: inherit;
+      cursor: pointer;
+      transition: color 0.2s, border-color 0.2s, background 0.2s;
+      white-space: nowrap;
+    }
+    .wear-btn.is-on {
+      color: var(--void);
+      background: var(--cyan);
+      border-color: var(--cyan);
+    }
+
+    .stage {
+      position: relative;
+      margin: 8px 0 16px;
+      aspect-ratio: 16 / 10;
+      border-radius: 4px;
+      overflow: hidden;
+      background: #000;
+      border: 1px solid var(--line);
+      box-shadow: 0 24px 48px rgba(0, 0, 0, 0.35);
+      animation: fadeUp 0.8s 0.2s ease both;
+      cursor: pointer;
+    }
+
+    .stage-hint {
+      position: absolute;
+      inset: 0;
+      z-index: 4;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      padding: 20px;
+      text-align: center;
+      background:
+        radial-gradient(60% 50% at 50% 40%, rgba(62, 207, 207, 0.12), transparent 70%),
+        rgba(7, 11, 15, 0.55);
+      pointer-events: none;
+      transition: opacity 0.25s ease;
+    }
+    .stage-hint[hidden] { display: none !important; }
+    .stage-hint__title {
+      font-family: var(--font-brand);
+      font-size: 1.6rem;
+      letter-spacing: 0.06em;
+      color: var(--ink);
+    }
+    .stage-hint__sub {
+      font-size: 0.85rem;
+      color: var(--ink-dim);
+      max-width: 16em;
+      line-height: 1.4;
+    }
+
+    .advanced {
+      margin-bottom: 18px;
+    }
+    .advanced[hidden] { display: none !important; }
+
+    .advanced-toggle {
+      width: 100%;
+      margin-bottom: 10px;
+      font-family: inherit;
+      font-size: 0.78rem;
+      color: var(--ink-dim);
+      background: transparent;
+      border: 1px dashed var(--line);
+      border-radius: 4px;
+      padding: 10px;
+      cursor: pointer;
+    }
+
+    .stage video,
+    .stage canvas {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      background: #000;
+    }
+
+    .stage[data-mode="source"] #sourceVideo { opacity: 1; z-index: 2; }
+    .stage[data-mode="source"] #previewCanvas,
+    .stage[data-mode="source"] #twinVideo { opacity: 0; pointer-events: none; }
+
+    .stage[data-mode="preview"] #previewCanvas { opacity: 1; z-index: 2; }
+    .stage[data-mode="preview"] #sourceVideo,
+    .stage[data-mode="preview"] #twinVideo { opacity: 0; pointer-events: none; }
+
+    .stage[data-mode="twin"] #twinVideo { opacity: 1; z-index: 2; }
+    .stage[data-mode="twin"] #sourceVideo,
+    .stage[data-mode="twin"] #previewCanvas { opacity: 0; pointer-events: none; }
+
+    .stage-badge {
+      position: absolute;
+      left: 10px;
+      bottom: 10px;
+      z-index: 3;
+      font-size: 0.68rem;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--ink);
+      background: rgba(7, 11, 15, 0.7);
+      border: 1px solid var(--line);
+      padding: 4px 8px;
+      pointer-events: none;
+    }
+    .stage[data-mode="source"] .stage-badge::after { content: "原片"; }
+    .stage[data-mode="preview"] .stage-badge::after { content: "题材预览"; }
+    .stage[data-mode="twin"] .stage-badge::after { content: "孪生 · 原声"; }
+
+    .meta {
+      color: var(--ink-dim);
+      font-size: 0.82rem;
+      line-height: 1.45;
+      margin-bottom: 14px;
+      min-height: 2.6em;
+    }
+
+    .actions {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-bottom: 14px;
+    }
+
+    .btn {
+      font-family: inherit;
+      font-size: 0.88rem;
+      font-weight: 500;
+      border: none;
+      border-radius: 4px;
+      padding: 14px 12px;
+      cursor: pointer;
+      transition: transform 0.15s ease, opacity 0.2s, background 0.2s;
+    }
+    .btn:active { transform: scale(0.98); }
+    .btn:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
+
+    .btn-primary {
+      background: var(--cyan);
+      color: var(--void);
+      grid-column: 1 / -1;
+    }
+    .btn-primary:hover:not(:disabled) { background: #55d9d9; }
+
+    .btn-ghost {
+      background: var(--panel-lift);
+      color: var(--ink);
+      border: 1px solid var(--line);
+    }
+
+    .btn-ember {
+      background: linear-gradient(135deg, var(--ember), #c45c28);
+      color: #1a0e08;
+    }
+
+    .progress {
+      height: 3px;
+      background: var(--fog);
+      border-radius: 2px;
+      overflow: hidden;
+      margin-bottom: 12px;
+    }
+    .progress__fill {
+      height: 100%;
+      width: 0;
+      background: linear-gradient(90deg, var(--cyan-deep), var(--cyan), var(--ember));
+      transition: width 0.15s linear;
+    }
+
+    .status {
+      font-size: 0.8rem;
+      color: var(--ink-dim);
+      min-height: 1.4em;
+      margin-bottom: 16px;
+    }
+
+    .section-label {
+      font-size: 0.72rem;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--ink-dim);
+      margin-bottom: 10px;
+    }
+
+    .theme-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      margin-bottom: 22px;
+    }
+
+    .theme-chip {
+      text-align: left;
+      font-family: inherit;
+      border: 1px solid var(--line);
+      background: var(--panel);
+      color: var(--ink);
+      border-radius: 4px;
+      padding: 12px;
+      cursor: pointer;
+      transition: border-color 0.2s, background 0.2s;
+    }
+    .theme-chip.is-active {
+      border-color: var(--cyan);
+      background: rgba(62, 207, 207, 0.1);
+    }
+    .theme-chip__label {
+      display: block;
+      font-weight: 600;
+      font-size: 0.9rem;
+      margin-bottom: 4px;
+    }
+    .theme-chip__blurb {
+      display: block;
+      font-size: 0.72rem;
+      color: var(--ink-dim);
+      line-height: 1.35;
+    }
+
+    .library {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .lib-empty {
+      color: var(--ink-dim);
+      font-size: 0.85rem;
+      padding: 8px 0;
+    }
+
+    .lib-card {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      padding: 12px;
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 4px;
+    }
+    .lib-card__body {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+      min-width: 0;
+    }
+    .lib-card__body strong { font-size: 0.9rem; }
+    .lib-card__body span {
+      font-size: 0.72rem;
+      color: var(--ink-dim);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .lib-card__actions {
+      display: flex;
+      gap: 6px;
+      flex-shrink: 0;
+    }
+    .lib-card__actions button {
+      font-family: inherit;
+      font-size: 0.72rem;
+      border: 1px solid var(--line);
+      background: var(--fog);
+      color: var(--ink);
+      padding: 6px 8px;
+      border-radius: 3px;
+      cursor: pointer;
+    }
+
+    input[type="file"] { display: none; }
+
+    .engine-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      margin-bottom: 12px;
+    }
+    .engine-chip {
+      text-align: left;
+      font-family: inherit;
+      border: 1px solid var(--line);
+      background: var(--panel);
+      color: var(--ink);
+      border-radius: 4px;
+      padding: 10px;
+      cursor: pointer;
+    }
+    .engine-chip.is-active {
+      border-color: var(--ember);
+      background: rgba(224, 122, 58, 0.12);
+    }
+    .engine-chip__label {
+      display: block;
+      font-weight: 600;
+      font-size: 0.82rem;
+      margin-bottom: 2px;
+    }
+    .engine-chip__blurb {
+      display: block;
+      font-size: 0.68rem;
+      color: var(--ink-dim);
+      line-height: 1.3;
+    }
+
+    .settings {
+      margin-bottom: 18px;
+      padding: 12px;
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 4px;
+    }
+    .settings[hidden] { display: none !important; }
+    .settings label {
+      display: block;
+      font-size: 0.72rem;
+      color: var(--ink-dim);
+      margin: 8px 0 4px;
+    }
+    .settings input,
+    .settings select {
+      width: 100%;
+      font-family: inherit;
+      font-size: 0.85rem;
+      color: var(--ink);
+      background: var(--void);
+      border: 1px solid var(--line);
+      border-radius: 3px;
+      padding: 10px;
+    }
+    .settings-actions {
+      display: flex;
+      gap: 8px;
+      margin-top: 12px;
+    }
+    .settings-note {
+      margin-top: 8px;
+      font-size: 0.72rem;
+      color: var(--ink-dim);
+      line-height: 1.4;
+    }
+
+    @media (max-width: 280px), (max-height: 300px) {
+      .app { padding: 6px 8px 10px; }
+      .brand { font-size: 1.6rem; letter-spacing: 0.04em; }
+      .tagline, .meta, .section-label, .theme-chip__blurb, .lib-card__body span,
+      .engine-chip__blurb, .settings { display: none; }
+      .stage { aspect-ratio: 16 / 9; margin: 4px 0 8px; }
+      .actions { gap: 6px; margin-bottom: 8px; }
+      .btn { padding: 10px 8px; font-size: 0.75rem; }
+      .theme-grid { grid-template-columns: 1fr 1fr 1fr; gap: 4px; margin-bottom: 8px; }
+      .theme-chip { padding: 8px 6px; }
+      .theme-chip__label { font-size: 0.7rem; margin: 0; }
+      .wear-btn { padding: 4px 8px; font-size: 0.65rem; }
+      .library { display: none; }
+      .status { font-size: 0.65rem; margin-bottom: 6px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <header class="hero">
+      <div class="topbar">
+        <div>
+          <h1 class="brand">影之<span>身</span></h1>
+          <p class="tagline">打开即用 · 选一段视频，自动仿题材出片，音轨原样保留。</p>
+        </div>
+        <button type="button" class="wear-btn" id="wearBtn">戒指/手杖</button>
+      </div>
+    </header>
+
+    <section class="stage" id="stage" data-mode="source" title="点击选择视频">
+      <div class="stage-hint" id="stageHint">
+        <div class="stage-hint__title">点这里选视频</div>
+        <div class="stage-hint__sub">本地即时生成孪生画面，无需账号与密钥</div>
+      </div>
+      <video id="sourceVideo" playsinline preload="metadata"></video>
+      <canvas id="previewCanvas" width="960" height="540"></canvas>
+      <video id="twinVideo" playsinline controls></video>
+      <div class="stage-badge"></div>
+    </section>
+
+    <p class="meta" id="meta"></p>
+
+    <div class="progress" id="progress" hidden>
+      <div class="progress__fill" id="progressFill"></div>
+    </div>
+    <p class="status" id="status">就绪。选视频即可开始。</p>
+
+    <div class="actions">
+      <button type="button" class="btn btn-primary" id="pickBtn">选视频，立即出片</button>
+      <button type="button" class="btn btn-ghost" id="againBtn" disabled>再生成</button>
+      <button type="button" class="btn btn-ember" id="downloadBtn" disabled>下载成片</button>
+    </div>
+
+    <button type="button" class="advanced-toggle" id="advancedToggle">高级选项（引擎 / 风格 / 密钥）</button>
+    <div class="advanced" id="advancedPanel" hidden>
+      <div class="actions" style="margin-bottom:12px">
+        <button type="button" class="btn btn-ghost" id="analyzeBtn" disabled>仅识别题材</button>
+        <button type="button" class="btn btn-ghost" id="generateBtn" disabled>仅生成</button>
+        <button type="button" class="btn btn-ghost" id="reshuffleBtn" disabled>换种子</button>
+        <button type="button" class="btn btn-ghost" id="settingsBtn">密钥面板</button>
+      </div>
+
+      <p class="section-label">生成引擎</p>
+      <div class="engine-grid" id="engineGrid"></div>
+
+      <div class="settings" id="settingsPanel" hidden>
+        <p class="section-label" style="margin:0 0 4px">API 配置（仅存本机）</p>
+        <div id="settingsRunway">
+          <label for="runwayApiKey">Runway API Key</label>
+          <input id="runwayApiKey" type="password" autocomplete="off" placeholder="key_…" />
+          <label for="runwayMode">Runway 模式</label>
+          <select id="runwayMode">
+            <option value="i2v">图生视频（首帧/中帧）</option>
+            <option value="v2v">视频生视频（Aleph）</option>
+          </select>
+          <label for="runwayModel">Runway 模型</label>
+          <select id="runwayModel">
+            <option value="gen4_turbo">gen4_turbo</option>
+            <option value="gen4.5">gen4.5</option>
+            <option value="gen4_aleph">gen4_aleph（V2V）</option>
+            <option value="veo3.1_fast">veo3.1_fast</option>
+          </select>
+        </div>
+        <div id="settingsKling">
+          <label for="klingAccessKey">可灵 Access Key</label>
+          <input id="klingAccessKey" type="password" autocomplete="off" />
+          <label for="klingSecretKey">可灵 Secret Key</label>
+          <input id="klingSecretKey" type="password" autocomplete="off" />
+          <label for="klingModel">可灵模型</label>
+          <select id="klingModel">
+            <option value="kling-v2-1">kling-v2-1</option>
+            <option value="kling-v2-1-master">kling-v2-1-master</option>
+            <option value="kling-v2-5-turbo">kling-v2-5-turbo</option>
+            <option value="kling-v2-6">kling-v2-6</option>
+            <option value="kling-v1-6">kling-v1-6</option>
+          </select>
+          <label for="klingMode">可灵画质</label>
+          <select id="klingMode">
+            <option value="std">std</option>
+            <option value="pro">pro</option>
+          </select>
+          <label for="klingBaseUrl">可灵 Base URL</label>
+          <input id="klingBaseUrl" type="url" placeholder="https://api-beijing.klingai.com" />
+        </div>
+        <div id="settingsSeedance">
+          <label for="seedanceGateway">Seedance 网关</label>
+          <select id="seedanceGateway">
+            <option value="fal">fal.ai（Seedance 2.0）</option>
+            <option value="runway">Runway（seedance2）</option>
+          </select>
+          <label for="seedanceFalKey">fal.ai API Key</label>
+          <input id="seedanceFalKey" type="password" autocomplete="off" placeholder="fal 网关必填" />
+          <label for="seedanceModel">fal 模型</label>
+          <select id="seedanceModel">
+            <option value="bytedance/seedance-2.0/image-to-video">seedance-2.0 image-to-video</option>
+            <option value="bytedance/seedance-2.0/fast/image-to-video">seedance-2.0 fast i2v</option>
+            <option value="bytedance/seedance-2.0/reference-to-video">seedance-2.0 reference-to-video</option>
+          </select>
+          <label for="seedanceResolution">分辨率</label>
+          <select id="seedanceResolution">
+            <option value="720p">720p</option>
+            <option value="480p">480p</option>
+          </select>
+          <label for="seedanceMode">Runway 网关模式</label>
+          <select id="seedanceMode">
+            <option value="i2v">图生视频</option>
+            <option value="v2v">视频生视频</option>
+          </select>
+          <p class="settings-note">未填密钥时自动回落本地引擎，保证打开即用。</p>
+        </div>
+        <div class="settings-actions">
+          <button type="button" class="btn btn-primary" id="saveSettingsBtn" style="grid-column:auto">保存</button>
+          <button type="button" class="btn btn-ghost" id="closeSettingsBtn">收起密钥</button>
+        </div>
+        <p class="settings-note">云端成片会丢弃模型音轨并贴回原声。移动端已开 CapacitorHttp。</p>
+      </div>
+
+      <p class="section-label">题材风格</p>
+      <div class="theme-grid" id="themeGrid"></div>
+    </div>
+
+    <p class="section-label">本地成片</p>
+    <div class="library" id="library"></div>
+
+    <input type="file" id="fileInput" accept="video/*" />
+  </div>
+  <script src="js/app.js"></script>
+</body>
+</html>

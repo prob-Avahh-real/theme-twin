@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">影之身</string>
+    <string name="title_activity_main">影之身</string>
+    <string name="package_name">com.skat.themetwin</string>
+    <string name="custom_url_scheme">com.skat.themetwin</string>
+</resources>
